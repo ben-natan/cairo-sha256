@@ -1,7 +1,7 @@
 %builtins output
 
 
-# Grosse utilisation de hint
+# CF playground: field elts 2
 func mod2(x: felt) -> (res: felt):
     alloc_locals
     local res
@@ -118,6 +118,7 @@ func compute_s0(w: felt) -> (res: felt):
     return (res=res)
 end
 
+
 func compute_s1(w: felt) -> (res: felt):
     let rr17 = rightRotate32(w, 17)
     let rr19 = rightRotate32(w, 19)
@@ -129,26 +130,6 @@ func compute_s1(w: felt) -> (res: felt):
     return (res=res)
 end
 
-
-
-struct Input:
-    member _0: felt
-    member _1: felt
-    member _2: felt
-    member _3: felt
-    member _4: felt
-    member _5: felt
-    member _6: felt
-    member _7: felt
-    member _8: felt
-    member _9: felt
-    member _10: felt
-    member _11: felt
-    member _12: felt
-    member _13: felt
-    member _14: felt
-    member _15: felt
-end
 
 
 func populateWs(w: felt*, i: felt):
