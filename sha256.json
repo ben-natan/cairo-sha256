@@ -1,0 +1,343 @@
+{
+    "builtins": [
+        "output"
+    ],
+    "data": [
+        290341444919459839,
+        2,
+        4613797087195136001,
+        10,
+        4622804286449942529,
+        2,
+        5191102247248822272,
+        2345108766317314046
+    ],
+    "debug_info": {
+        "file_contents": {},
+        "instruction_locations": {
+            "0": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.output_ptr": 0
+                    }
+                },
+                "hint": null,
+                "inst": {
+                    "end_col": 17,
+                    "end_line": 20,
+                    "input_file": {
+                        "filename": "sha256.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 20
+                }
+            },
+            "2": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.output_ptr": 0,
+                        "__main__.main.x": 1
+                    }
+                },
+                "hint": null,
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 22,
+                    "input_file": {
+                        "filename": "sha256.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 22
+                }
+            },
+            "4": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.output_ptr": 0,
+                        "__main__.main.solution": 2,
+                        "__main__.main.x": 1,
+                        "__main__.main.y": 3
+                    }
+                },
+                "hint": {
+                    "location": {
+                        "end_col": 7,
+                        "end_line": 26,
+                        "input_file": {
+                            "filename": "sha256.cairo"
+                        },
+                        "start_col": 5,
+                        "start_line": 24
+                    },
+                    "n_prefix_newlines": 1
+                },
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 30,
+                    "input_file": {
+                        "filename": "sha256.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 30
+                }
+            },
+            "6": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.output_ptr": 0,
+                        "__main__.main.solution": 2,
+                        "__main__.main.x": 1,
+                        "__main__.main.y": 3
+                    }
+                },
+                "hint": null,
+                "inst": {
+                    "end_col": 28,
+                    "end_line": 19,
+                    "input_file": {
+                        "filename": "sha256.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 28,
+                            "end_line": 19,
+                            "input_file": {
+                                "filename": "sha256.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 14,
+                                    "end_line": 31,
+                                    "input_file": {
+                                        "filename": "sha256.cairo"
+                                    },
+                                    "start_col": 5,
+                                    "start_line": 31
+                                },
+                                "While trying to retrieve the implicit argument 'output_ptr' in:"
+                            ],
+                            "start_col": 11,
+                            "start_line": 19
+                        },
+                        "While expanding the reference 'output_ptr' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 19
+                }
+            },
+            "7": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.main.output_ptr": 0,
+                        "__main__.main.solution": 2,
+                        "__main__.main.x": 1,
+                        "__main__.main.y": 3
+                    }
+                },
+                "hint": null,
+                "inst": {
+                    "end_col": 14,
+                    "end_line": 31,
+                    "input_file": {
+                        "filename": "sha256.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 31
+                }
+            }
+        }
+    },
+    "hints": {
+        "4": {
+            "accessible_scopes": [
+                "__main__",
+                "__main__.main"
+            ],
+            "code": "ids.x = program_input['x']",
+            "flow_tracking_data": {
+                "ap_tracking": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "reference_ids": {
+                    "__main__.main.output_ptr": 0,
+                    "__main__.main.solution": 2,
+                    "__main__.main.x": 1,
+                    "__main__.main.y": 3
+                }
+            }
+        }
+    },
+    "identifiers": {
+        "__main__.main": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "__main__.main.Args": {
+            "full_name": "__main__.main.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.ImplicitArgs": {
+            "full_name": "__main__.main.ImplicitArgs",
+            "members": {
+                "output_ptr": {
+                    "cairo_type": "felt*",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.main.Return": {
+            "full_name": "__main__.main.Return",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 2
+        },
+        "__main__.main.output_ptr": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.main.output_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 0,
+                    "value": "[cast(fp + (-3), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.solution": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.solution",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 4,
+                    "value": "[cast(fp + 1, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.x": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.x",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 2,
+                    "value": "[cast(fp, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.y": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.y",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 4,
+                    "value": "cast([fp] + 2, felt)"
+                }
+            ],
+            "type": "reference"
+        }
+    },
+    "main_scope": "__main__",
+    "prime": 3618502788666131213697322783095070105623107215331596699973092056135872020481,
+    "reference_manager": {
+        "references": [
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 0,
+                "value": "[cast(fp + (-3), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 2,
+                "value": "[cast(fp, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 4,
+                "value": "[cast(fp + 1, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 4,
+                "value": "cast([fp] + 2, felt)"
+            }
+        ]
+    }
+}
