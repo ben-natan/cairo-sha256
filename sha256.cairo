@@ -191,14 +191,14 @@ func compute_maj(a: felt, b: felt, c: felt) -> (maj: felt):
 end
 
 
-func main_loop(a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt, i: felt) -> (a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt):
+func main_loop(a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt, i: felt, w: felt*, k: felt*) -> (a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt):
     if i == 64:
         return (a=a, b=b, c=c, d=d, e=e, f=f, g=g, h=h)
     end
 
     let sig1 = compute_sig1(e)
     let ch = compute_ch(e,f,g)
-    let temp1 = h + sig1 + ch + # k[i] + w[i]
+    let temp1 = h + sig1 + ch + k[i] + w[i]
     let sig0 = compute_sig0(a)
     let maj = compute_maj(a,b,c)
     let temp2 = sig0 + maj
@@ -212,7 +212,7 @@ func main_loop(a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h:
     let new_b = a
     let new_a = temp1 + temp2
 
-    let final_tuple = main_loop(new_a, new_b, new_c, new_d, new_e, new_f, new_g, new_h, i+1) 
+    let final_tuple = main_loop(new_a, new_b, new_c, new_d, new_e, new_f, new_g, new_h, i+1, w, k) 
     return (final_tuple)
 end
 
@@ -233,6 +233,8 @@ func sha256(x: felt*) -> (h0: felt, h1: felt, h2: felt, h3: felt, h4: felt, h5: 
     local h6 = %[0x1f83d9ab%]
     local h7 = %[0x5be0cd19%]
 
+    let (local k: felt*) = alloc()
+    loadKs(k, 0)
 
     # Input loading
     let (local w: felt*) = alloc()
@@ -264,7 +266,7 @@ func sha256(x: felt*) -> (h0: felt, h1: felt, h2: felt, h3: felt, h4: felt, h5: 
     let g = h6
     let h = h7
 
-    let (res_a, res_b, res_c, res_d, res_e, res_f, res_g, res_h) = main_loop(a, b, c, d, e, f, g, h, 0)
+    let (res_a, res_b, res_c, res_d, res_e, res_f, res_g, res_h) = main_loop(a, b, c, d, e, f, g, h, 0, w, k)
 
     return (h0= h0 + res_a, h1= h1 + res_b, h2= h2 + res_c, h3= h3 + res_d, h4= h4 + res_e, h5= h5 + res_f, h6= h6 + res_g, h7= h7 + res_h)
 end
