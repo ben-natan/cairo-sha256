@@ -1,4 +1,5 @@
 %builtins output
+from starkware.cairo.common.alloc import alloc
 
 func loadKs(k: felt*):
    assert [k] = %[0x428a2f98%]
@@ -66,6 +67,7 @@ func loadKs(k: felt*):
    assert [k + 61] = %[0xa4506ceb%]
    assert [k + 62] = %[0xbef9a3f7%]
    assert [k + 63] = %[0xc67178f2%]
+   return()
 end
 
 
@@ -118,23 +120,24 @@ func getBit(x: felt, i: felt) -> (res: felt):
         return (res=xmod2)
     end
 
-    if xmod2 == 1:
-        return (res=getBit((x-1)/2, i-1))
-    else:
-        return (res=getBit(x/2, i-1))
-    end
+    let (bit) = getBit( (x-xmod2) / 2, i-1)
+
+    return (res=bit)
 end
 
 
 func pow(x: felt, n: felt) -> (res: felt):
     if n == 0:
+        return (res=1)
+    end
+    if n == 1:
         return (res=x)
     end
 
     let (nmod2) = mod2(n)
     if nmod2 == 0: 
         let (nextpow) = pow(x, n/2)
-        return (res=nextpow)
+        return (res=nextpow * nextpow)
     else:
         let (nextpow) = pow(x, (n-1)/2)
         return (res=nextpow * x * nextpow)
@@ -142,28 +145,48 @@ func pow(x: felt, n: felt) -> (res: felt):
 end
 
 
+
 func aux_xor32(x: felt, y: felt, i: felt) -> (res: felt):
-    let xBit = getBit(x, i)
-    let yBit = getBit(y, i)
+    alloc_locals
+    let (xBit) = getBit(x, i)
+    local xBit = xBit
+    let (yBit) = getBit(y, i)
+    local yBit = yBit
 
     if i == 31:
-        if xBit == 1 && yBit == 1:
-            return (res=0)
-        end
-        if xBit == 0 && yBit == 0:
-            return (res=0)
+        if xBit == 1:
+            if yBit == 1:
+                return (res=0)
+            else:
+                let pw = %[2**31%]  
+                return (res=pw)
+            end
         else:
-            return (res=pow(2, i))
+            if yBit == 1:
+                let pw = %[2**31%]
+                return (res=pw)
+            else:
+                return (res=0)
+            end
         end
-
     else:
-        if xBit == 1 && yBit ==1:
-            return (res=aux_xor32(x, y, i+1))
-        end
-        if xBit == 0 && yBit == 0:
-            return (res=aux_xor32(x, y, i+1))
+        let (next) = aux_xor32(x, y, i+1)
+        local next = next
+        if xBit == 1:
+            if yBit == 1:
+                return (res=next)
+            else:
+                let (pw) = pow(2,i)
+                return (res= pw + next)
+            end
+
         else:
-            return (res=pow(2,i) + aux_xor32(x,y,i+1))
+            if yBit == 1:
+                let (pw) = pow(2,i)
+                return (res = pw + next)
+            else :
+                return (res=next)
+            end
         end
     end
 
@@ -171,29 +194,84 @@ end
 
 
 func xor32(x: felt, y: felt) -> (res: felt):
-    return (res=aux_xor32(x,y,0))
+    let (res) = aux_xor32(x, y, 0)
+    return (res=res)
+end
+
+func aux_and32(x: felt, y: felt, i: felt) -> (res: felt):
+    alloc_locals
+    let (xBit) = getBit(x, i)
+    local xBit = xBit
+    let (yBit) = getBit(y, i)
+    local yBit = yBit
+
+    if i == 31:
+        if xBit == 1:
+            if yBit == 1:
+                let pw = %[2**32%]
+                return (res=pw)
+            else:
+                return (res=0)
+            end
+        else:
+            return (res=0)
+        end
+    else:
+        let (next) = aux_and32(x, y, i+1)
+        local next = next
+        if xBit == 1:
+            if yBit == 1:
+                let (pw) = pow(2,i)
+                return (res= pw + next)
+            else:
+                return (res=next)
+            end
+        else: 
+            return (res=next)
+        end
+    end
+
+end
+
+func and32(x: felt, y: felt) -> (res: felt):
+    let (res) = aux_and32(x, y, 0)
+    return (res=res)
 end
 
 
 func compute_s0(w: felt) -> (res: felt):
-    let rr7 = rightRotate32(w, 7)
-    let rr18 = rightRotate32(w, 18)
-    let rs3 = rightShift(w, 3)
-    
-    let (7xor18) = xor32(rr7, rr18)
-    let (res) = xor32(7xor18, rs3)
+    alloc_locals
+
+    let (rr7) = rightRotate32(w, 7)
+    local loc_rr7 = rr7
+
+    let (rr18) = rightRotate32(w, 18)
+    local loc_rr18 = rr18
+
+    let (rs3) = rightShift(w, 3)
+    local loc_rs3 = rs3
+
+    let (_7xor18) = xor32(loc_rr7, loc_rr18)
+    let (res) = xor32(_7xor18, loc_rs3)
     
     return (res=res)
 end
 
 
 func compute_s1(w: felt) -> (res: felt):
-    let rr17 = rightRotate32(w, 17)
-    let rr19 = rightRotate32(w, 19)
-    let rs10 = rightShift(w, 10)
+    alloc_locals
 
-    let (17xor19) = xor32(rr17, rr19)
-    let (res) = xor32(17xor19, rs10)
+    let (rr17) = rightRotate32(w, 17)
+    local loc_rr17 = rr17
+
+    let (rr19) = rightRotate32(w, 19)
+    local loc_rr19 = rr19
+
+    let (rs10) = rightShift(w, 10)
+    local loc_rs10 = rs10
+
+    let (_17xor19) = xor32(loc_rr17, loc_rr19)
+    let (res) = xor32(_17xor19, loc_rs10)
 
     return (res=res)
 end
@@ -201,58 +279,88 @@ end
 
 
 func populateWs(w: felt*, i: felt):
+    alloc_locals
 
-    if (i == 64):
+    if i == 64:
         return ()
     end
 
-    let s0 = compute_s0([w - 15])
-    let s1 = compute_s1([w - 2])
+    let w15 = [w + i - 15]
+    let (s0) = compute_s0(w15)
+    local loc_s0 = s0
+
+    let w2 = [w + i - 2]
+    let (s1) = compute_s1(w2)
+    local loc_s1 = s1
 
     # Immutable: OK puisque les w après w15 ne sont pas attribués
-    assert [w] = [w - 16] + s0 + [w - 7] + s1
-    populateWs(w+1, i+1)
+    assert [w + i] = [w + i - 16] + loc_s0 + [w + i - 7] + loc_s1
+    populateWs(w, i+1)
     return()
 end
 
 
 func compute_sig0(a: felt) -> (sig0: felt):
-    let rr2 = rightRotate32(a, 2)
-    let rr13 = rightRotate32(a, 13)
-    let rr22 = rightRotate32(a, 22)
+    alloc_locals
 
-    let (2xor13) = xor32(rr2, rr13)
-    let (sig0) = xor32(2xor13, rr22)
+    let (rr2) = rightRotate32(a, 2)
+    local loc_rr2 = rr2
+    
+    let (rr13) = rightRotate32(a, 13)
+    local loc_rr13 = rr13
+    
+    let (rr22) = rightRotate32(a, 22)
+    local loc_rr22 = rr22
+
+    let (_2xor13) = xor32(loc_rr2, loc_rr13)
+    let (sig0) = xor32(_2xor13, loc_rr22)
 
     return (sig0 = sig0)
 end
 
 
 func compute_sig1(e: felt) -> (sig1: felt):
-    let rr6 = rightRotate32(e, 6)
-    let rr11 = rightRotate32(e, 11)
-    let rr25 = rightRotate32(e, 25)
+    alloc_locals
 
-    let (6xor11) = xor32(rr6, rr11)
-    let (sig1) = xor32(6xor11, rr25)
+    let (rr6) = rightRotate32(e, 6)
+    local loc_rr6 = rr6
+
+    let (rr11) = rightRotate32(e, 11)
+    local loc_rr11 = rr11
+
+    let (rr25) = rightRotate32(e, 25)
+    local loc_rr25 = rr25
+
+    let (_6xor11) = xor32(loc_rr6, loc_rr11)
+    let (sig1) = xor32(_6xor11, loc_rr25)
 
     return (sig1 = sig1)
 end
 
 
 func compute_ch(e: felt, f: felt, g: felt) -> (ch: felt):
+    alloc_locals
     let (fxorg) = xor32(f,g)
-    let (eand_) = and32(e, fxorg)
-    let (ch) xor32(eand_, g)
+    local loc_fxorg = fxorg
+
+    let (eand_) = and32(e, loc_fxorg)
+
+    let (ch) = xor32(eand_, g)
 
     return (ch=ch)
 end
 
 
 func compute_maj(a: felt, b: felt, c: felt) -> (maj: felt):
+    alloc_locals
+    
     let (axorb) = xor32(a,b)
+    local loc_axorb = axorb
+
     let (axorc) = xor32(a,c)
-    let (and) = and32(axorb, axorc)
+    local loc_axorc = axorc
+
+    let (and) = and32(loc_axorb, loc_axorc)
     let (maj) = xor32(and, a)
 
     return (maj=maj)
@@ -260,16 +368,27 @@ end
 
 
 func main_loop(a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt, i: felt, w: felt*, k: felt*) -> (a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt):
+    alloc_locals
+
     if i == 64:
         return (a=a, b=b, c=c, d=d, e=e, f=f, g=g, h=h)
     end
 
-    let sig1 = compute_sig1(e)
-    let ch = compute_ch(e,f,g)
-    let temp1 = h + sig1 + ch + k[i] + w[i]
-    let sig0 = compute_sig0(a)
-    let maj = compute_maj(a,b,c)
-    let temp2 = sig0 + maj
+    let (sig1) = compute_sig1(e)
+    local loc_sig1 = sig1
+
+    let (ch) = compute_ch(e,f,g)
+    local loc_ch = ch
+
+    let temp1 = h + loc_sig1 + loc_ch + k[i] + w[i]
+
+    let (sig0) = compute_sig0(a)
+    local loc_sig0 = sig0
+
+    let (maj) = compute_maj(a,b,c)
+    local loc_maj = maj
+
+    let temp2 = loc_sig0 + loc_maj
 
     let new_h = g
     let new_g = f
@@ -280,8 +399,8 @@ func main_loop(a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h:
     let new_b = a
     let new_a = temp1 + temp2
 
-    let final_tuple = main_loop(new_a, new_b, new_c, new_d, new_e, new_f, new_g, new_h, i+1, w, k) 
-    return (final_tuple)
+    let (fa, fb, fc, fd, fe, ff, fg, fh) = main_loop(new_a, new_b, new_c, new_d, new_e, new_f, new_g, new_h, i+1, w, k)
+    return (fa, fb, fc, fd, fe, ff, fg, fh)
 end
 
 
@@ -302,7 +421,7 @@ func sha256(x: felt*) -> (h0: felt, h1: felt, h2: felt, h3: felt, h4: felt, h5: 
     local h7 = %[0x5be0cd19%]
 
     let (local k: felt*) = alloc()
-    loadKs(k, 0)
+    loadKs(k)
 
     # Input loading
     let (local w: felt*) = alloc()
@@ -343,34 +462,69 @@ end
 
 func main{output_ptr: felt*}():
     alloc_locals
-    local pub0 =
-    local pub1 =
-    local pub2 =
-    local pub3 =
-    local pub4 =
-    local pub5 =
-    local pub6 =
-    local pub7 =
+    local pub0 = -1672033199
+    local pub1 = -1284193350
+    local pub2 = 412225749
+    local pub3 = -1227571369
+    local pub4 = 2030908700
+    local pub5 = -1765508094
+    local pub6 = 420400926
+    local pub7 = 1124480427
+
+    local x0
+    local x1
+    local x2
+    local x3
+    local x4
+    local x5
+    local x6
+    local x7
+    local x8
+    local x9
+    local x10
+    local x11
+    local x12
+    local x13
+    local x14
+    local x15
+
 
     let (local x: felt*) = alloc()
     %{
-        ids.[x] = program_input['x0']
-        ids.[x+1] = program_input['x1']
-        ids.[x+2] = program_input['x2']
-        ids.[x+3] = program_input['x3']
-        ids.[x+4] = program_input['x4']
-        ids.[x+5] = program_input['x5']
-        ids.[x+6] = program_input['x6']
-        ids.[x+7] = program_input['x7']
-        ids.[x+8] = program_input['x8']
-        ids.[x+9] = program_input['x9']
-        ids.[x+10] = program_input['x10']
-        ids.[x+11] = program_input['x11']
-        ids.[x+12] = program_input['x12']
-        ids.[x+13] = program_input['x13']
-        ids.[x+14] = program_input['x14']
-        ids.[x+15] = program_input['x15']
+        ids.x0 = program_input['x0']
+        ids.x1 = program_input['x1']
+        ids.x2 = program_input['x2']
+        ids.x3 = program_input['x3']
+        ids.x4 = program_input['x4']
+        ids.x5 = program_input['x5']
+        ids.x6 = program_input['x6']
+        ids.x7 = program_input['x7']
+        ids.x8 = program_input['x8']
+        ids.x9 = program_input['x9']
+        ids.x10 = program_input['x10']
+        ids.x11 = program_input['x11']
+        ids.x12 = program_input['x12']
+        ids.x13 = program_input['x13']
+        ids.x14 = program_input['x14']
+        ids.x15 = program_input['x15']
     %}
+    assert [x] = x0
+    assert [x+1] = x1
+    assert [x+2] = x2
+    assert [x+3] = x3
+    assert [x+4] = x4
+    assert [x+5] = x5
+    assert [x+6] = x6
+    assert [x+7] = x7
+    assert [x+8] = x8
+    assert [x+9] = x9
+    assert [x+10] = x10
+    assert [x+11] = x11
+    assert [x+12] = x12
+    assert [x+13] = x13
+    assert [x+14] = x14
+    assert [x+15] = x15
+
 
     let (y0, y1, y2, y3, y4, y5, y6, y7) = sha256(x)
 
