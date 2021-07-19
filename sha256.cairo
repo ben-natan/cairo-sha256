@@ -1,5 +1,6 @@
-%builtins output
+%builtins output range_check
 from starkware.cairo.common.alloc import alloc
+from starkware.cairo.common.math import unsigned_div_rem
 
 func loadKs(k: felt*):
    assert [k] = %[0x428a2f98%]
@@ -72,61 +73,61 @@ end
 
 
 # CF playground: field elts 2
-func mod2(x: felt) -> (res: felt):
-    alloc_locals
-    local res
-    %{ ids.res = ids.x % 2 %}
-    return (res=res)
+func mod2{range_check_ptr}(x: felt) -> (res: felt):
+    let (_, r) = unsigned_div_rem{range_check_ptr=range_check_ptr}(value=x, div=2)
+    return (res = r)
 end
 
 
 
-func rightShift(x: felt, n: felt) -> (res: felt):
+
+
+func rightShift{range_check_ptr}(x: felt, n: felt) -> (res: felt):
     if n == 0:
         return (res=x)
     end
 
-    let (xmod2) = mod2(x)
+    let (xmod2) = mod2{range_check_ptr=range_check_ptr}(x)
     if xmod2 == 0:
-        let (rS) = rightShift(x/2, n-1)
+        let (rS) = rightShift{range_check_ptr=range_check_ptr}(x/2, n-1)
         return (res=rS)
     else :
-        let (rS) = rightShift((x-1)/2, n-1)
+        let (rS) = rightShift{range_check_ptr=range_check_ptr}((x-1)/2, n-1)
         return (res=rS)
     end 
 end
 
 
 
-func rightRotate32(x: felt, n: felt) -> (res: felt):
+func rightRotate32{range_check_ptr}(x: felt, n: felt) -> (res: felt):
     if n == 0:
         return (res=x)
     end
 
-    let (xmod2) = mod2(x)
+    let (xmod2) = mod2{range_check_ptr=range_check_ptr}(x)
     if xmod2 == 0:
-        let (rR32) = rightRotate32(x/2, n-1)
+        let (rR32) = rightRotate32{range_check_ptr=range_check_ptr}(x/2, n-1)
         return (rR32)
     else:
-        let (rR32) = rightRotate32( (x-1)/2 + %[ 2**31 %], n-1) 
+        let (rR32) = rightRotate32{range_check_ptr=range_check_ptr}( (x-1)/2 + %[ 2**31 %], n-1) 
         return (rR32)
     end
 end
 
 
-func getBit(x: felt, i: felt) -> (res: felt):
-    let (xmod2) = mod2(x)
+func getBit{range_check_ptr}(x: felt, i: felt) -> (res: felt):
+    let (xmod2) = mod2{range_check_ptr=range_check_ptr}(x)
     if i == 0:
         return (res=xmod2)
     end
 
-    let (bit) = getBit( (x-xmod2) / 2, i-1)
+    let (bit) = getBit{range_check_ptr=range_check_ptr}( (x-xmod2) / 2, i-1)
 
     return (res=bit)
 end
 
 
-func pow(x: felt, n: felt) -> (res: felt):
+func pow{range_check_ptr}(x: felt, n: felt) -> (res: felt):
     if n == 0:
         return (res=1)
     end
@@ -134,23 +135,23 @@ func pow(x: felt, n: felt) -> (res: felt):
         return (res=x)
     end
 
-    let (nmod2) = mod2(n)
+    let (nmod2) = mod2{range_check_ptr=range_check_ptr}(n)
     if nmod2 == 0: 
-        let (nextpow) = pow(x, n/2)
+        let (nextpow) = pow{range_check_ptr=range_check_ptr}(x, n/2)
         return (res=nextpow * nextpow)
     else:
-        let (nextpow) = pow(x, (n-1)/2)
+        let (nextpow) = pow{range_check_ptr=range_check_ptr}(x, (n-1)/2)
         return (res=nextpow * x * nextpow)
     end
 end
 
 
 
-func aux_xor32(x: felt, y: felt, i: felt) -> (res: felt):
+func aux_xor32{range_check_ptr}(x: felt, y: felt, i: felt) -> (res: felt):
     alloc_locals
-    let (xBit) = getBit(x, i)
+    let (xBit) = getBit{range_check_ptr=range_check_ptr}(x, i)
     local xBit = xBit
-    let (yBit) = getBit(y, i)
+    let (yBit) = getBit{range_check_ptr=range_check_ptr}(y, i)
     local yBit = yBit
 
     if i == 31:
@@ -170,19 +171,19 @@ func aux_xor32(x: felt, y: felt, i: felt) -> (res: felt):
             end
         end
     else:
-        let (next) = aux_xor32(x, y, i+1)
+        let (next) = aux_xor32{range_check_ptr=range_check_ptr}(x, y, i+1)
         local next = next
         if xBit == 1:
             if yBit == 1:
                 return (res=next)
             else:
-                let (pw) = pow(2,i)
+                let (pw) = pow{range_check_ptr=range_check_ptr}(2,i)
                 return (res= pw + next)
             end
 
         else:
             if yBit == 1:
-                let (pw) = pow(2,i)
+                let (pw) = pow{range_check_ptr=range_check_ptr}(2,i)
                 return (res = pw + next)
             else :
                 return (res=next)
@@ -193,16 +194,16 @@ func aux_xor32(x: felt, y: felt, i: felt) -> (res: felt):
 end
 
 
-func xor32(x: felt, y: felt) -> (res: felt):
-    let (res) = aux_xor32(x, y, 0)
+func xor32{range_check_ptr}(x: felt, y: felt) -> (res: felt):
+    let (res) = aux_xor32{range_check_ptr=range_check_ptr}(x, y, 0)
     return (res=res)
 end
 
-func aux_and32(x: felt, y: felt, i: felt) -> (res: felt):
+func aux_and32{range_check_ptr}(x: felt, y: felt, i: felt) -> (res: felt):
     alloc_locals
-    let (xBit) = getBit(x, i)
+    let (xBit) = getBit{range_check_ptr=range_check_ptr}(x, i)
     local xBit = xBit
-    let (yBit) = getBit(y, i)
+    let (yBit) = getBit{range_check_ptr=range_check_ptr}(y, i)
     local yBit = yBit
 
     if i == 31:
@@ -217,11 +218,11 @@ func aux_and32(x: felt, y: felt, i: felt) -> (res: felt):
             return (res=0)
         end
     else:
-        let (next) = aux_and32(x, y, i+1)
+        let (next) = aux_and32{range_check_ptr=range_check_ptr}(x, y, i+1)
         local next = next
         if xBit == 1:
             if yBit == 1:
-                let (pw) = pow(2,i)
+                let (pw) = pow{range_check_ptr=range_check_ptr}(2,i)
                 return (res= pw + next)
             else:
                 return (res=next)
@@ -233,52 +234,52 @@ func aux_and32(x: felt, y: felt, i: felt) -> (res: felt):
 
 end
 
-func and32(x: felt, y: felt) -> (res: felt):
-    let (res) = aux_and32(x, y, 0)
+func and32{range_check_ptr}(x: felt, y: felt) -> (res: felt):
+    let (res) = aux_and32{range_check_ptr=range_check_ptr}(x, y, 0)
     return (res=res)
 end
 
 
-func compute_s0(w: felt) -> (res: felt):
+func compute_s0{range_check_ptr}(w: felt) -> (res: felt):
     alloc_locals
 
-    let (rr7) = rightRotate32(w, 7)
+    let (rr7) = rightRotate32{range_check_ptr=range_check_ptr}(w, 7)
     local loc_rr7 = rr7
 
-    let (rr18) = rightRotate32(w, 18)
+    let (rr18) = rightRotate32{range_check_ptr=range_check_ptr}(w, 18)
     local loc_rr18 = rr18
 
-    let (rs3) = rightShift(w, 3)
+    let (rs3) = rightShift{range_check_ptr=range_check_ptr}(w, 3)
     local loc_rs3 = rs3
 
-    let (_7xor18) = xor32(loc_rr7, loc_rr18)
-    let (res) = xor32(_7xor18, loc_rs3)
+    let (_7xor18) = xor32{range_check_ptr=range_check_ptr}(loc_rr7, loc_rr18)
+    let (res) = xor32{range_check_ptr=range_check_ptr}(_7xor18, loc_rs3)
     
     return (res=res)
 end
 
 
-func compute_s1(w: felt) -> (res: felt):
+func compute_s1{range_check_ptr}(w: felt) -> (res: felt):
     alloc_locals
 
-    let (rr17) = rightRotate32(w, 17)
+    let (rr17) = rightRotate32{range_check_ptr=range_check_ptr}(w, 17)
     local loc_rr17 = rr17
 
-    let (rr19) = rightRotate32(w, 19)
+    let (rr19) = rightRotate32{range_check_ptr=range_check_ptr}(w, 19)
     local loc_rr19 = rr19
 
-    let (rs10) = rightShift(w, 10)
+    let (rs10) = rightShift{range_check_ptr=range_check_ptr}(w, 10)
     local loc_rs10 = rs10
 
-    let (_17xor19) = xor32(loc_rr17, loc_rr19)
-    let (res) = xor32(_17xor19, loc_rs10)
+    let (_17xor19) = xor32{range_check_ptr=range_check_ptr}(loc_rr17, loc_rr19)
+    let (res) = xor32{range_check_ptr=range_check_ptr}(_17xor19, loc_rs10)
 
     return (res=res)
 end
 
 
 
-func populateWs(w: felt*, i: felt):
+func populateWs{range_check_ptr}(w: felt*, i: felt):
     alloc_locals
 
     if i == 64:
@@ -286,106 +287,106 @@ func populateWs(w: felt*, i: felt):
     end
 
     let w15 = [w + i - 15]
-    let (s0) = compute_s0(w15)
+    let (s0) = compute_s0{range_check_ptr=range_check_ptr}(w15)
     local loc_s0 = s0
 
     let w2 = [w + i - 2]
-    let (s1) = compute_s1(w2)
+    let (s1) = compute_s1{range_check_ptr=range_check_ptr}(w2)
     local loc_s1 = s1
 
     # Immutable: OK puisque les w après w15 ne sont pas attribués
     assert [w + i] = [w + i - 16] + loc_s0 + [w + i - 7] + loc_s1
-    populateWs(w, i+1)
+    populateWs{range_check_ptr=range_check_ptr}(w, i+1)
     return()
 end
 
 
-func compute_sig0(a: felt) -> (sig0: felt):
+func compute_sig0{range_check_ptr}(a: felt) -> (sig0: felt):
     alloc_locals
 
-    let (rr2) = rightRotate32(a, 2)
+    let (rr2) = rightRotate32{range_check_ptr=range_check_ptr}(a, 2)
     local loc_rr2 = rr2
     
-    let (rr13) = rightRotate32(a, 13)
+    let (rr13) = rightRotate32{range_check_ptr=range_check_ptr}(a, 13)
     local loc_rr13 = rr13
     
-    let (rr22) = rightRotate32(a, 22)
+    let (rr22) = rightRotate32{range_check_ptr=range_check_ptr}(a, 22)
     local loc_rr22 = rr22
 
-    let (_2xor13) = xor32(loc_rr2, loc_rr13)
-    let (sig0) = xor32(_2xor13, loc_rr22)
+    let (_2xor13) = xor32{range_check_ptr=range_check_ptr}(loc_rr2, loc_rr13)
+    let (sig0) = xor32{range_check_ptr=range_check_ptr}(_2xor13, loc_rr22)
 
     return (sig0 = sig0)
 end
 
 
-func compute_sig1(e: felt) -> (sig1: felt):
+func compute_sig1{range_check_ptr}(e: felt) -> (sig1: felt):
     alloc_locals
 
-    let (rr6) = rightRotate32(e, 6)
+    let (rr6) = rightRotate32{range_check_ptr=range_check_ptr}(e, 6)
     local loc_rr6 = rr6
 
-    let (rr11) = rightRotate32(e, 11)
+    let (rr11) = rightRotate32{range_check_ptr=range_check_ptr}(e, 11)
     local loc_rr11 = rr11
 
-    let (rr25) = rightRotate32(e, 25)
+    let (rr25) = rightRotate32{range_check_ptr=range_check_ptr}(e, 25)
     local loc_rr25 = rr25
 
-    let (_6xor11) = xor32(loc_rr6, loc_rr11)
-    let (sig1) = xor32(_6xor11, loc_rr25)
+    let (_6xor11) = xor32{range_check_ptr=range_check_ptr}(loc_rr6, loc_rr11)
+    let (sig1) = xor32{range_check_ptr=range_check_ptr}(_6xor11, loc_rr25)
 
     return (sig1 = sig1)
 end
 
 
-func compute_ch(e: felt, f: felt, g: felt) -> (ch: felt):
+func compute_ch{range_check_ptr}(e: felt, f: felt, g: felt) -> (ch: felt):
     alloc_locals
-    let (fxorg) = xor32(f,g)
+    let (fxorg) = xor32{range_check_ptr=range_check_ptr}(f,g)
     local loc_fxorg = fxorg
 
-    let (eand_) = and32(e, loc_fxorg)
+    let (eand_) = and32{range_check_ptr=range_check_ptr}(e, loc_fxorg)
 
-    let (ch) = xor32(eand_, g)
+    let (ch) = xor32{range_check_ptr=range_check_ptr}(eand_, g)
 
     return (ch=ch)
 end
 
 
-func compute_maj(a: felt, b: felt, c: felt) -> (maj: felt):
+func compute_maj{range_check_ptr}(a: felt, b: felt, c: felt) -> (maj: felt):
     alloc_locals
     
-    let (axorb) = xor32(a,b)
+    let (axorb) = xor32{range_check_ptr=range_check_ptr}(a,b)
     local loc_axorb = axorb
 
-    let (axorc) = xor32(a,c)
+    let (axorc) = xor32{range_check_ptr=range_check_ptr}(a,c)
     local loc_axorc = axorc
 
-    let (and) = and32(loc_axorb, loc_axorc)
-    let (maj) = xor32(and, a)
+    let (and) = and32{range_check_ptr=range_check_ptr}(loc_axorb, loc_axorc)
+    let (maj) = xor32{range_check_ptr=range_check_ptr}(and, a)
 
     return (maj=maj)
 end
 
 
-func main_loop(a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt, i: felt, w: felt*, k: felt*) -> (a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt):
+func main_loop{range_check_ptr}(a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt, i: felt, w: felt*, k: felt*) -> (a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h: felt):
     alloc_locals
 
     if i == 64:
         return (a=a, b=b, c=c, d=d, e=e, f=f, g=g, h=h)
     end
 
-    let (sig1) = compute_sig1(e)
+    let (sig1) = compute_sig1{range_check_ptr=range_check_ptr}(e)
     local loc_sig1 = sig1
 
-    let (ch) = compute_ch(e,f,g)
+    let (ch) = compute_ch{range_check_ptr=range_check_ptr}(e,f,g)
     local loc_ch = ch
 
     let temp1 = h + loc_sig1 + loc_ch + k[i] + w[i]
 
-    let (sig0) = compute_sig0(a)
+    let (sig0) = compute_sig0{range_check_ptr=range_check_ptr}(a)
     local loc_sig0 = sig0
 
-    let (maj) = compute_maj(a,b,c)
+    let (maj) = compute_maj{range_check_ptr=range_check_ptr}(a,b,c)
     local loc_maj = maj
 
     let temp2 = loc_sig0 + loc_maj
@@ -399,7 +400,7 @@ func main_loop(a: felt, b: felt, c: felt, d: felt, e: felt, f: felt, g: felt, h:
     let new_b = a
     let new_a = temp1 + temp2
 
-    let (fa, fb, fc, fd, fe, ff, fg, fh) = main_loop(new_a, new_b, new_c, new_d, new_e, new_f, new_g, new_h, i+1, w, k)
+    let (fa, fb, fc, fd, fe, ff, fg, fh) = main_loop{range_check_ptr=range_check_ptr}(new_a, new_b, new_c, new_d, new_e, new_f, new_g, new_h, i+1, w, k)
     return (fa, fb, fc, fd, fe, ff, fg, fh)
 end
 
@@ -407,7 +408,7 @@ end
 
 
 
-func sha256(x: felt*) -> (h0: felt, h1: felt, h2: felt, h3: felt, h4: felt, h5: felt, h6: felt, h7: felt):
+func sha256{range_check_ptr}(x: felt*) -> (h0: felt, h1: felt, h2: felt, h3: felt, h4: felt, h5: felt, h6: felt, h7: felt):
     alloc_locals
 
     # Constants
@@ -442,7 +443,7 @@ func sha256(x: felt*) -> (h0: felt, h1: felt, h2: felt, h3: felt, h4: felt, h5: 
     assert [w + 14] = [x + 14]
     assert [w + 15] = [x + 15]
 
-    populateWs(w, 16)  # Voir changement de mémoire
+    populateWs{range_check_ptr=range_check_ptr}(w, 16)  # Voir changement de mémoire
 
     let a = h0
     let b = h1
@@ -460,7 +461,7 @@ end
 
 
 
-func main{output_ptr: felt*}():
+func main{output_ptr: felt*, range_check_ptr}():
     alloc_locals
     local pub0 = -1672033199
     local pub1 = -1284193350
@@ -526,7 +527,7 @@ func main{output_ptr: felt*}():
     assert [x+15] = x15
 
 
-    let (y0, y1, y2, y3, y4, y5, y6, y7) = sha256(x)
+    let (y0, y1, y2, y3, y4, y5, y6, y7) = sha256{range_check_ptr=range_check_ptr}(x)
 
     assert y0 = pub0
     assert y1 = pub1
